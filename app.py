@@ -9,10 +9,10 @@ st.title("🤖 Bot Informasi DC Marunda")
 # Sidebar untuk Input API Key
 API_KEY = st.sidebar.text_input("Masukkan Gemini API Key:", type="password")
 
-# Tautan CSV dari Google Sheets Kamu
-SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRixx1TQe_8rc2jatwN8lxF8IXK6M7DNDAgoSzDUHScMpk7jOozQgK2kxMrHQNeJ0_shU7EiVqxTLi-/pub?output=csv"
+# Link Google Sheets (Pastikan Sheet sudah disetting 'Siapa saja yang memiliki link dapat melihat')
+SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRixx1TQe_8rc2jatwN8lxF8IXK6M7DNDAgoSzDUHScMpk7jOozQgK2kxMrHQNeJ0_shU7EiVqxTLi-/pub?output=csv"
 
-@st.cache_data(ttl=300)
+@st.cache_data(ttl=60)
 def load_data(url):
     try:
         df = pd.read_csv(url)
@@ -21,15 +21,13 @@ def load_data(url):
         st.error(f"Gagal membaca data dari Google Sheets: {e}")
         return None
 
-data = load_data(SHEET_CSV_URL)
+data = load_data(SHEET_URL)
 
 if data is not None and API_KEY:
     try:
         genai.configure(api_key=API_KEY)
-        # Menggunakan model gemini-2.5-flash terbaru
-        model = genai.GenerativeModel("gemini-2.5-flash")
+        model = genai.GenerativeModel("gemini-1.5-flash")
 
-        # Mengubah data tabel sheet menjadi teks referensi untuk AI
         context = data.to_string(index=False)
 
         user_query = st.chat_input("Tanyakan jadwal absen atau nama karyawan...")
