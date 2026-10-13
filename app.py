@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import google.generativeai as genai
+import re
 
 # Konfigurasi Halaman Web
 st.set_page_config(page_title="Bot Informasi DC Marunda", page_icon="🤖")
@@ -9,8 +10,16 @@ st.title("🤖 Bot Informasi DC Marunda")
 # Sidebar untuk Input API Key
 API_KEY = st.sidebar.text_input("Masukkan Gemini API Key:", type="password")
 
-# Link Google Sheets (Pastikan Sheet sudah disetting 'Siapa saja yang memiliki link dapat melihat')
-SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRixx1TQe_8rc2jatwN8lxF8IXK6M7DNDAgoSzDUHScMpk7jOozQgK2kxMrHQNeJ0_shU7EiVqxTLi-/pub?output=csv"
+# TEMPEL LINK HASIL 'SALIN LINK' DARI TOMBOL BAGIKAN DI SINI
+ORIGINAL_SHEET_URL = "https://docs.google.com/spreadsheets/d/1e6eazfxdEfNXgupSIZNm7747Am4v2fU-b8VmfEp0gDs/edit?usp=sharing"
+
+def get_csv_url(url):
+    # Mengubah otomatis link /edit atau /view menjadi format CSV export
+    if "/edit" in url or "/view" in url:
+        return re.sub(r'/(edit|view).*', '/export?format=csv', url)
+    return url
+
+SHEET_CSV_URL = get_csv_url(ORIGINAL_SHEET_URL)
 
 @st.cache_data(ttl=60)
 def load_data(url):
@@ -21,7 +30,7 @@ def load_data(url):
         st.error(f"Gagal membaca data dari Google Sheets: {e}")
         return None
 
-data = load_data(SHEET_URL)
+data = load_data(SHEET_CSV_URL)
 
 if data is not None and API_KEY:
     try:
