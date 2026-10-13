@@ -12,10 +12,9 @@ API_KEY = st.secrets.get("GEMINI_API_KEY") or st.sidebar.text_input("Masukkan Ge
 # 3. LINK GOOGLE SHEETS UTAMA
 SHEET_ID = "1e6eazfxdEfNXgupSIZNm7747Am4v2fU-b8VmfEp0gDs"
 
-# ttl=0 membuat data langsung ter-update otomatis secara instant begitu Google Sheets diedit
-@st.cache_data(ttl=0)
+# Menggunakan cache 60 detik agar tidak boros kuota API harian
+@st.cache_data(ttl=60)
 def load_all_sheets(sheet_id):
-    # Nama-nama tab disesuaikan 100% persis dengan nama tab Google Sheets kamu
     tab_names = [
         "Absensi", 
         "Insentif", 
@@ -52,7 +51,8 @@ for message in st.session_state.messages:
 if context_data and API_KEY:
     try:
         genai.configure(api_key=API_KEY)
-        model = genai.GenerativeModel("gemini-3.6-flash")
+        # Menggunakan gemini-1.5-flash agar kuota harian melimpah (1500 request/hari)
+        model = genai.GenerativeModel("gemini-1.5-flash")
 
         user_query = st.chat_input("Tanyakan soal Absensi, Insentif, Produktifitas, atau KPI Gudang...")
 
