@@ -6,16 +6,23 @@ import google.generativeai as genai
 st.set_page_config(page_title="Bot Informasi DC Marunda", page_icon="🤖")
 st.title("🤖 Bot Informasi DC Marunda")
 
-# 2. Pengaturan API Key (Otomatis dari Secrets atau Manual dari Sidebar)
+# 2. Pengaturan API Key (Otomatis dari Streamlit Secrets atau Manual dari Sidebar)
 API_KEY = st.secrets.get("GEMINI_API_KEY") or st.sidebar.text_input("Masukkan Gemini API Key:", type="password")
 
 # 3. LINK GOOGLE SHEETS UTAMA
 SHEET_ID = "1e6eazfxdEfNXgupSIZNm7747Am4v2fU-b8VmfEp0gDs"
 
-@st.cache_data(ttl=60)
+# ttl=0 membuat data langsung ter-update otomatis secara instant begitu Google Sheets diedit
+@st.cache_data(ttl=0)
 def load_all_sheets(sheet_id):
-    # Daftar nama tab sheet yang kamu miliki
-    tab_names = ["Absen", "Jadwal", "Insentif", "Produktivitas", "KPI Gudang", "KPI", "Sheet1"]
+    # Nama-nama tab disesuaikan 100% persis dengan nama tab Google Sheets kamu
+    tab_names = [
+        "Absensi", 
+        "Insentif", 
+        "Produktifitas", 
+        "KPI Gudang", 
+        "Sheet1"
+    ]
     all_context = ""
 
     for tab in tab_names:
@@ -45,10 +52,9 @@ for message in st.session_state.messages:
 if context_data and API_KEY:
     try:
         genai.configure(api_key=API_KEY)
-        # MENGGUNAKAN GEMINI 3.6 FLASH YANG SUDAH TERBUKTI BISA
         model = genai.GenerativeModel("gemini-3.6-flash")
 
-        user_query = st.chat_input("Tanyakan soal Absen, Insentif, Produktivitas, atau KPI...")
+        user_query = st.chat_input("Tanyakan soal Absensi, Insentif, Produktifitas, atau KPI Gudang...")
 
         if user_query:
             st.session_state.messages.append({"role": "user", "content": user_query})
@@ -57,12 +63,12 @@ if context_data and API_KEY:
 
             prompt = f"""
             Kamu adalah AI Asisten Operasional DC Marunda. 
-            Jawab pertanyaan karyawan secara akurat, ramah, dan profesional berdasarkan data berikut.
+            Jawab pertanyaan karyawan secara akurat, ramah, dan profesional berdasarkan seluruh data dari tab Google Sheets berikut.
             Jika pertanyaan mengenai histori/masa lalu, cari baris data sesuai tanggal/periode terkait.
 
-            ================ SELURUH DATA GOOGLE SHEETS ================
+            ================ SELURUH DATA GOOGLE SHEETS DC MARUNDA ================
             {context_data}
-            ============================================================
+            ======================================================================
 
             PERTANYAAN KARYAWAN:
             {user_query}
