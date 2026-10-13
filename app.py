@@ -35,7 +35,7 @@ data = load_data(SHEET_CSV_URL)
 if data is not None and API_KEY:
     try:
         genai.configure(api_key=API_KEY)
-        model = genai.GenerativeModel("gemini-1.5-flash")
+        model = genai.GenerativeModel("gemini-3.6-flash")
 
         context = data.to_string(index=False)
 
