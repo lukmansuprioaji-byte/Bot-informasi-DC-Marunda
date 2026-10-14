@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import google.generativeai as genai
+import time
 
 # 1. Konfigurasi Halaman Web
 st.set_page_config(page_title="Bot Informasi DC Marunda", page_icon="🤖")
@@ -50,7 +51,6 @@ for message in st.session_state.messages:
 if context_data and API_KEY:
     try:
         genai.configure(api_key=API_KEY)
-        # NAMA MODEL DIUBAH SESUAI PERINTAH PERSIS DARI GOOGLE
         model = genai.GenerativeModel("gemini-3.8-flash")
 
         user_query = st.chat_input("Tanyakan soal Absensi, Insentif, Produktifitas, atau KPI Gudang...")
@@ -74,15 +74,26 @@ if context_data and API_KEY:
             """
 
             with st.spinner("Mencari data..."):
-                response = model.generate_content(prompt)
-                bot_reply = response.text
+                response_text = None
+                # Percobaan otomatis hingga 3 kali jika terkena batas limit per menit (Error 429)
+                for attempt in range(3):
+                    try:
+                        response = model.generate_content(prompt)
+                        response_text = response.text
+                        break
+                    except Exception as err:
+                        if "429" in str(err) and attempt < 2:
+                            time.sleep(5)  # Tunggu 5 detik sebelum coba lagi
+                        else:
+                            raise err
 
-                with st.chat_message("assistant"):
-                    st.markdown(bot_reply)
-                st.session_state.messages.append({"role": "assistant", "content": bot_reply})
+                if response_text:
+                    with st.chat_message("assistant"):
+                        st.markdown(response_text)
+                    st.session_state.messages.append({"role": "assistant", "content": response_text})
 
     except Exception as e:
-        st.error(f"Terjadi kesalahan pada sistem AI: {e}")
+        st.error(f"Sistem sedang padat (batas request per menit). Silakan tunggu beberapa detik lalu coba lagi. Detail: {e}")
 
 elif not API_KEY:
     st.info("Silakan masukkan Gemini API Key di menu sebelah kiri (Sidebar) untuk mulai bertanya.")
