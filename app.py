@@ -1,12 +1,12 @@
 import streamlit as st
 import pandas as pd
-import google.generativeai as genai
+from google import genai
 
 # 1. Konfigurasi Halaman Web
 st.set_page_config(page_title="Bot Informasi DC Marunda", page_icon="🤖")
 st.title("🤖 Bot Informasi DC Marunda")
 
-# 2. Pengaturan API Key (Otomatis dari Streamlit Secrets atau Manual dari Sidebar)
+# 2. Pengaturan API Key (Dari Streamlit Secrets atau Sidebar)
 API_KEY = st.secrets.get("GEMINI_API_KEY") or st.sidebar.text_input("Masukkan Gemini API Key:", type="password")
 
 # 3. LINK GOOGLE SHEETS UTAMA
@@ -46,13 +46,10 @@ for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# 5. Pemrosesan Chat dengan AI
+# 5. Pemrosesan Chat dengan AI Gemini SDK Baru
 if context_data and API_KEY:
     try:
-        genai.configure(api_key=API_KEY)
-        
-        # Daftar model cadangan agar tidak gantung/error
-        available_models = ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-2.5-flash"]
+        client = genai.Client(api_key=API_KEY)
 
         user_query = st.chat_input("Tanyakan soal Absensi, Insentif, Produktifitas, atau KPI Gudang...")
 
@@ -75,25 +72,23 @@ if context_data and API_KEY:
             """
 
             with st.spinner("Mencari data..."):
-                response_text = None
-                
-                # Coba dipanggil satu per satu hingga berhasil
-                for model_name in available_models:
-                    try:
-                        model = genai.GenerativeModel(model_name)
-                        response = model.generate_content(prompt)
-                        response_text = response.text
-                        if response_text:
-                            break
-                    except Exception:
-                        continue
+                try:
+                    response = client.models.generate_content(
+                        model="gemini-2.5-flash",
+                        contents=prompt,
+                    )
+                    bot_reply = response.text
+                except Exception as model_err:
+                    # Fallback ke gemini-2.0-flash jika 2.5 berhalangan
+                    response = client.models.generate_content(
+                        model="gemini-2.0-flash",
+                        contents=prompt,
+                    )
+                    bot_reply = response.text
 
-                if response_text:
-                    with st.chat_message("assistant"):
-                        st.markdown(response_text)
-                    st.session_state.messages.append({"role": "assistant", "content": response_text})
-                else:
-                    st.error("Gagal mendapatkan respon dari AI. Mohon periksa API Key atau coba beberapa saat lagi.")
+                with st.chat_message("assistant"):
+                    st.markdown(bot_reply)
+                st.session_state.messages.append({"role": "assistant", "content": bot_reply})
 
     except Exception as e:
         st.error(f"Terjadi kesalahan pada sistem AI: {e}")
