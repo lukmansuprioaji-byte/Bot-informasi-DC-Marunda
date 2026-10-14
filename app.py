@@ -51,7 +51,7 @@ if context_data and API_KEY:
     try:
         genai.configure(api_key=API_KEY)
         # MENGGUNAKAN GEMINI 3.8 FLASH
-        model = genai.GenerativeModel("gemini-3.8-flash")
+        model = genai.GenerativeModel("gemini-3.6-flash")
 
         user_query = st.chat_input("Tanyakan soal Absensi, Insentif, Produktifitas, atau KPI Gudang...")
 
