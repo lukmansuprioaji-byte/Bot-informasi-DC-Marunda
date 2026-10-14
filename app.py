@@ -51,7 +51,7 @@ if context_data and API_KEY:
     try:
         genai.configure(api_key=API_KEY)
         # NAMA MODEL DIUBAH SESUAI PERINTAH PERSIS DARI GOOGLE
-        model = genai.GenerativeModel("gemini-3.6-flash")
+        model = genai.GenerativeModel("gemini-3.8-flash")
 
         user_query = st.chat_input("Tanyakan soal Absensi, Insentif, Produktifitas, atau KPI Gudang...")
 
