@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from google import genai
+import google.generativeai as genai
 
 # 1. Konfigurasi Halaman Web
 st.set_page_config(page_title="Bot Informasi DC Marunda", page_icon="🤖")
@@ -46,10 +46,12 @@ for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# 5. Pemrosesan Chat dengan AI Gemini SDK Baru
+# 5. Pemrosesan Chat dengan AI
 if context_data and API_KEY:
     try:
-        client = genai.Client(api_key=API_KEY)
+        genai.configure(api_key=API_KEY)
+        # NAMA MODEL DIUBAH SESUAI PERINTAH PERSIS DARI GOOGLE
+        model = genai.GenerativeModel("gemini-3.6-flash")
 
         user_query = st.chat_input("Tanyakan soal Absensi, Insentif, Produktifitas, atau KPI Gudang...")
 
@@ -72,19 +74,8 @@ if context_data and API_KEY:
             """
 
             with st.spinner("Mencari data..."):
-                try:
-                    response = client.models.generate_content(
-                        model="gemini-2.5-flash",
-                        contents=prompt,
-                    )
-                    bot_reply = response.text
-                except Exception as model_err:
-                    # Fallback ke gemini-2.0-flash jika 2.5 berhalangan
-                    response = client.models.generate_content(
-                        model="gemini-2.0-flash",
-                        contents=prompt,
-                    )
-                    bot_reply = response.text
+                response = model.generate_content(prompt)
+                bot_reply = response.text
 
                 with st.chat_message("assistant"):
                     st.markdown(bot_reply)
