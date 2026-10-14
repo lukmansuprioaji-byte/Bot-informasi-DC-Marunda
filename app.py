@@ -11,7 +11,7 @@ st.title("🤖 Bot Informasi DC Marunda")
 API_KEY = st.secrets.get("GEMINI_API_KEY") or st.sidebar.text_input("Masukkan Gemini API Key (Opsional):", type="password")
 
 # 3. LINK GOOGLE SHEETS UTAMA (GANTI DENGAN LINK BAGIKAN KAMU)
-ORIGINAL_SHEET_URL = "PASANG_LINK_BAGIKAN_DI_SINI"
+ORIGINAL_SHEET_URL = "https://docs.google.com/spreadsheets/d/1pCLPIS2Gi55_hQPTAp8v753TeU6WWPbchAAKGPDg6wE/edit?usp=sharing"
 
 # Fungsi Otomatis Mengubah Link ke CSV Export
 def extract_sheet_id(url):
